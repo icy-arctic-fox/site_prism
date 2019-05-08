@@ -101,20 +101,20 @@ module SitePrism
 
     private
 
-    def _find(*find_args)
-      page.find(*find_args)
+    def _find(*find_args, &optional_filter_block)
+      page.find(*find_args, &optional_filter_block)
     end
 
-    def _all(*find_args)
-      page.all(*find_args)
+    def _all(*find_args, &optional_filter_block)
+      page.all(*find_args, &optional_filter_block)
     end
 
-    def element_exists?(*find_args)
-      page.has_selector?(*find_args)
+    def element_exists?(*find_args, &optional_filter_block)
+      page.has_selector?(*find_args, &optional_filter_block)
     end
 
-    def element_does_not_exist?(*find_args)
-      page.has_no_selector?(*find_args)
+    def element_does_not_exist?(*find_args, &optional_filter_block)
+      page.has_no_selector?(*find_args, &optional_filter_block)
     end
 
     def regexp_backed_matches

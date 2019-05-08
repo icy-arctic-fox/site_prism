@@ -75,23 +75,25 @@ module SitePrism
     module ClassMethods
       attr_reader :expected_items
 
-      def element(name, *find_args)
+      def element(name, *find_args, &optional_filter_block)
         build(:element, name, *find_args) do
           define_method(name) do |*runtime_args, &element_block|
-            raise_if_block(self, name, !element_block.nil?, :element)
-            _find(*merge_args(find_args, runtime_args))
+            _find(*merge_args(find_args, runtime_args), &optional_filter_block)
           end
         end
       end
 
-      def elements(name, *find_args)
+      alias specific_element element
+
+      def elements(name, *find_args, &optional_filter_block)
         build(:elements, name, *find_args) do
           define_method(name) do |*runtime_args, &element_block|
-            raise_if_block(self, name, !element_block.nil?, :elements)
-            _all(*merge_args(find_args, runtime_args))
+            _all(*merge_args(find_args, runtime_args), &optional_filter_block)
           end
         end
       end
+
+      alias specific_elements elements
 
       def expected_elements(*elements)
         @expected_items = elements
@@ -107,12 +109,34 @@ module SitePrism
         end
       end
 
+      def specific_section(name, *args, &optional_filter_block)
+        section_class, find_args = extract_section_options(args)
+        build(:section, name, *find_args) do
+          define_method(name) do |*runtime_args, &runtime_block|
+            section_element = _find(*merge_args(find_args, runtime_args), &optional_filter_block)
+            section_class.new(self, section_element, &runtime_block)
+          end
+        end
+      end
+
       def sections(name, *args, &block)
         section_class, find_args = extract_section_options(args, &block)
         build(:sections, name, *find_args) do
           define_method(name) do |*runtime_args, &element_block|
             raise_if_block(self, name, !element_block.nil?, :sections)
             _all(*merge_args(find_args, runtime_args)).map do |element|
+              section_class.new(self, element)
+            end
+          end
+        end
+      end
+
+      def specific_sections(name, *args, &optional_filter_block)
+        section_class, find_args = extract_section_options(args)
+        build(:sections, name, *find_args) do
+          define_method(name) do |*runtime_args, &element_block|
+            raise_if_block(self, name, !element_block.nil?, :sections)
+            _all(*merge_args(find_args, runtime_args), &optional_filter_block).map do |element|
               section_class.new(self, element)
             end
           end
