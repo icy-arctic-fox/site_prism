@@ -83,7 +83,7 @@ module SitePrism
         end
       end
 
-      alias specific_element element
+      alias filtered_element element
 
       def elements(name, *find_args, &optional_filter_block)
         build(:elements, name, *find_args) do
@@ -93,7 +93,7 @@ module SitePrism
         end
       end
 
-      alias specific_elements elements
+      alias filtered_elements elements
 
       def expected_elements(*elements)
         @expected_items = elements
@@ -109,7 +109,7 @@ module SitePrism
         end
       end
 
-      def specific_section(name, *args, &optional_filter_block)
+      def filtered_section(name, *args, &optional_filter_block)
         section_class, find_args = extract_section_options(args)
         build(:section, name, *find_args) do
           define_method(name) do |*runtime_args, &runtime_block|
@@ -131,7 +131,7 @@ module SitePrism
         end
       end
 
-      def specific_sections(name, *args, &optional_filter_block)
+      def filtered_sections(name, *args, &optional_filter_block)
         section_class, find_args = extract_section_options(args)
         build(:sections, name, *find_args) do
           define_method(name) do |*runtime_args, &element_block|
