@@ -24,6 +24,13 @@ module SitePrism
       def url_matcher
         @url_matcher ||= url
       end
+
+      def get(*args)
+        new(*args).tap do |page|
+          page.load if url_matcher
+	  page.when_loaded { }
+        end
+      end
     end
 
     def page
