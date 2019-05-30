@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'capybara/dsl'
 require 'site_prism/loadable'
 
 module SitePrism
