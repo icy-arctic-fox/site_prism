@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'site_prism/loadable'
+require 'capybara/dsl'
 
 module SitePrism
   # rubocop:disable Metrics/ClassLength
