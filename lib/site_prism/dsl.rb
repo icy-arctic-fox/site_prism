@@ -1,6 +1,13 @@
 # frozen_string_literal: true
 
 module SitePrism
+  # [SitePrism::DSL]
+  #
+  # This is the core Module Namespace for all of the public-facing DSL methods
+  #   such as `element`. The code here is designed to be used through the defining
+  #   of said items, and not to be instantiated directly.
+  #
+  # The whole package here can be thought of as [@api private]
   module DSL
     def self.included(klass)
       klass.extend ClassMethods
@@ -8,9 +15,28 @@ module SitePrism
 
     private
 
-    # The default waiting time set by Capybara's configuration settings.
-    def wait_time
-      Capybara.default_max_wait_time
+    # Call `find` inside context set on page/section
+    def _find(*find_args)
+      kwargs = find_args.pop
+      page.find(*find_args, **kwargs)
+    end
+
+    # Call `all` inside context set on page/section
+    def _all(*find_args)
+      kwargs = find_args.pop
+      page.all(*find_args, **kwargs)
+    end
+
+    # Call `has_selector?` inside context set on page/section
+    def element_exists?(*find_args)
+      kwargs = find_args.pop
+      page.has_selector?(*find_args, **kwargs)
+    end
+
+    # Call `has_no_selector?` inside context set on page/section
+    def element_does_not_exist?(*find_args)
+      kwargs = find_args.pop
+      page.has_no_selector?(*find_args, **kwargs)
     end
 
     # Prevent users from calling methods with blocks when they shouldn't be.
@@ -36,6 +62,14 @@ module SitePrism
       raise SitePrism::UnsupportedBlockError
     end
 
+    # Warn users from naming the elements starting with no_
+    def warn_if_dsl_collision(obj, name)
+      return unless name.to_s.start_with?('no_')
+
+      SitePrism.logger.warn("#{obj.class}##{name} should not start with no_")
+      SitePrism::Deprecator.deprecate('Using no_ prefix in DSL definition')
+    end
+
     # Sanitize method called before calling any SitePrism DSL method or
     # meta-programmed method. This ensures that the Capybara query is correct.
     #
@@ -49,7 +83,7 @@ module SitePrism
 
       recombine_args(find_args, runtime_args, options)
 
-      return [*find_args, *runtime_args] if options.empty?
+      return [*find_args, *runtime_args, {}] if options.empty?
 
       [*find_args, *runtime_args, options]
     end
@@ -60,34 +94,47 @@ module SitePrism
     #
     # If the hash is empty, then the hash is omitted from the payload sent
     # to Capybara, and the find / runtime arguments are sent alone.
+    #
+    # NB: If the +wait+ key is present in the options hash, even as false or 0, It will
+    # be set as the user-supplied value (So user error can be the cause for issues).
     def recombine_args(find_args, runtime_args, options)
       options.merge!(find_args.pop) if find_args.last.is_a? Hash
       options.merge!(runtime_args.pop) if runtime_args.last.is_a? Hash
-      options[:wait] = wait_time unless wait_key_present?(options)
+      options[:wait] = Capybara.default_max_wait_time unless options.key?(:wait)
     end
 
-    # Detect if the +wait+ key is present in the options hash.
-    # Note that setting it to to false or 0, still will return true here.
-    def wait_key_present?(options)
-      options.key?(:wait)
-    end
-
+    # SitePrism::DSL::ClassMethods
+    # This exposes all of the DSL definitions users will use when generating
+    # their POM classes.
+    #
+    # Many of these methods will be used in-line to allow users to generate a multitude of
+    # methods and locators for finding elements / sections on a page or section of a page
     module ClassMethods
       attr_reader :expected_items
 
+      # Creates an instance of a SitePrism Element - This will create several methods designed to
+      # Locate the element -> @return [Capybara::Node::Element]
+      # Check the elements presence or non-presence -> @return [Boolean]
+      # Wait for the elements to be present or not -> @return [TrueClass, SitePrism::Error]
+      # Validate certain properties about the element
       def element(name, *find_args, &optional_filter_block)
         build(:element, name, *find_args) do
           define_method(name) do |*runtime_args, &element_block|
+            warn_if_dsl_collision(self, name)
             _find(*merge_args(find_args, runtime_args), &optional_filter_block)
           end
         end
       end
 
-      alias filtered_element element
-
+      # Creates a enumerable instance of a SitePrism Element - This will create several methods designed to
+      # Locate the enumerable element -> @return [Capybara::Result]
+      # Check the elements presence or non-presence -> @return [Boolean]
+      # Wait for the elements to be present or not -> @return [TrueClass, SitePrism::Error]
+      # Validate certain properties about the elements
       def elements(name, *find_args, &optional_filter_block)
         build(:elements, name, *find_args) do
           define_method(name) do |*runtime_args, &element_block|
+            warn_if_dsl_collision(self, name)
             _all(*merge_args(find_args, runtime_args), &optional_filter_block)
           end
         end
@@ -95,14 +142,23 @@ module SitePrism
 
       alias filtered_elements elements
 
+      # Sets the `expected_items` iVar on a class. This property is used in conjunction with
+      # `all_there?` to provide a way of granularising the check made to only interrogate a sub-set
+      # of DSL defined items
       def expected_elements(*elements)
         @expected_items = elements
       end
 
+      # Creates an instance of a SitePrism Section - This will create several methods designed to
+      # Locate the section -> @return [SitePrism::Section]
+      # Check the section presence or non-presence -> @return [Boolean]
+      # Wait for the section to be present or not -> @return [TrueClass, SitePrism::Error]
+      # Validate certain properties about the section
       def section(name, *args, &block)
         section_class, find_args = extract_section_options(args, &block)
         build(:section, name, *find_args) do
           define_method(name) do |*runtime_args, &runtime_block|
+            warn_if_dsl_collision(self, name)
             section_element = _find(*merge_args(find_args, runtime_args))
             section_class.new(self, section_element, &runtime_block)
           end
@@ -119,6 +175,11 @@ module SitePrism
         end
       end
 
+      # Creates an enumerable instance of a SitePrism Section - This will create several methods designed to
+      # Locate the sections -> @return [Array]
+      # Check the sections presence or non-presence -> @return [Boolean]
+      # Wait for the sections to be present or not -> @return [TrueClass, SitePrism::Error]
+      # Validate certain properties about the section
       def sections(name, *args, &block)
         section_class, find_args = extract_section_options(args, &block)
         build(:sections, name, *find_args) do
@@ -144,6 +205,7 @@ module SitePrism
       end
 
       def iframe(name, klass, *args)
+        SitePrism.logger.debug('Block passed into iFrame construct at build time') if block_given?
         element_find_args = deduce_iframe_element_find_args(args)
         scope_find_args = deduce_iframe_scope_find_args(args)
         build(:iframe, name, *element_find_args) do
@@ -155,11 +217,26 @@ module SitePrism
         end
       end
 
-      def mapped_items
-        @mapped_items ||= []
+      def mapped_items(legacy: true)
+        return old_mapped_items if legacy
+
+        new_mapped_items
       end
 
       private
+
+      def old_mapped_items
+        SitePrism::Deprecator.soft_deprecate(
+          '.mapped_items on a class',
+          'To allow easier recursion through the items in conjunction with #all_there?',
+          '.mapped_items(legacy: false)'
+        )
+        @old_mapped_items ||= []
+      end
+
+      def new_mapped_items
+        @new_mapped_items ||= { element: [], elements: [], section: [], sections: [], iframe: [] }
+      end
 
       def build(type, name, *find_args)
         if find_args.empty?
@@ -172,35 +249,22 @@ module SitePrism
       end
 
       def map_item(type, name)
-        mapped_items << { type => name.to_sym }
+        old_mapped_items << { type => name }
+        new_mapped_items[type] << name.to_sym
       end
 
       def add_helper_methods(name, *find_args)
         create_existence_checker(name, *find_args)
         create_nonexistence_checker(name, *find_args)
-        create_rspec_existence_matchers(name) if defined?(RSpec)
+        SitePrism::RspecMatchers.new(name)._create_rspec_existence_matchers if defined?(RSpec)
         create_visibility_waiter(name, *find_args)
         create_invisibility_waiter(name, *find_args)
       end
 
       def create_helper_method(proposed_method_name, *find_args)
-        if find_args.empty?
-          create_error_method(proposed_method_name)
-        else
-          yield
-        end
-      end
+        return create_error_method(proposed_method_name) if find_args.empty?
 
-      def create_rspec_existence_matchers(element_name)
-        matcher = "has_#{element_name}?"
-        negated_matcher = "has_no_#{element_name}?"
-
-        RSpec::Matchers.define "have_#{element_name}" do |*args|
-          match { |actual| actual.public_send(matcher, *args) }
-          match_when_negated do |actual|
-            actual.public_send(negated_matcher, *args)
-          end
-        end
+        yield
       end
 
       def create_existence_checker(element_name, *find_args)
@@ -248,7 +312,11 @@ module SitePrism
       end
 
       def create_error_method(name)
-        SitePrism.logger.error("#{name} has come from an item with 0 locators.")
+        SitePrism.logger.error("#{name} has come from an item with no locators.")
+        SitePrism::Deprecator.soft_deprecate(
+          'DSL definition with no find_args',
+          'All DSL elements should have find_args'
+        )
         define_method(name) { raise SitePrism::InvalidElementError }
       end
 
@@ -274,7 +342,7 @@ module SitePrism
         return unless looks_like_xpath?(args[0])
 
         SitePrism.logger.warn('The arguments passed in look like xpath. Check your locators.')
-        SitePrism.logger.debug("Default locator: #{Capybara.default_selector}")
+        SitePrism.logger.debug("Default locator strategy: #{Capybara.default_selector}")
       end
 
       def looks_like_xpath?(arg)
@@ -284,7 +352,7 @@ module SitePrism
       def extract_section_options(args, &block)
         if args.first.is_a?(Class)
           klass = args.shift
-          section_class = klass if klass.ancestors.include?(SitePrism::Section)
+          section_class = klass if klass <= SitePrism::Section
         end
 
         section_class = deduce_section_class(section_class, &block)
@@ -294,22 +362,25 @@ module SitePrism
 
       def deduce_section_class(base_class, &block)
         klass = base_class
-        klass = Class.new(klass || SitePrism::Section, &block) if block_given?
+        klass = Class.new(klass || SitePrism::Section, &block) if block
         return klass if klass
 
-        raise ArgumentError, "You should provide descendant of \
-SitePrism::Section class or/and a block as the second argument."
+        raise ArgumentError, 'You should provide descendant of SitePrism::Section class or/and a block as the second argument.'
       end
 
       def deduce_search_arguments(section_class, args)
         extract_search_arguments(args) ||
           extract_search_arguments(section_class.default_search_arguments) ||
-          raise(ArgumentError, "You should provide search arguments \
-in section creation or set_default_search_arguments within section class")
+          invalidate_search_arguments!
       end
 
       def extract_search_arguments(args)
         args if args && !args.empty?
+      end
+
+      def invalidate_search_arguments!
+        SitePrism.logger.error('Could not deduce search_arguments')
+        raise(ArgumentError, 'search arguments are needed in `section` definition or alternatively use `set_default_search_arguments`')
       end
     end
   end

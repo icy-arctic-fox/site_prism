@@ -45,6 +45,24 @@ Feature: Page Properties
     When I navigate to the slow page
     Then not all elements are present
 
+  Scenario: All Elements Present (With Recursion) - Positive
+    When I navigate to the letter A page
+    Then all elements and first-generation descendants are present
+
+  Scenario: All Elements Present (With Recursion) - Negative
+    When I navigate to the nested section page
+    Then all elements and first-generation descendants are not present
+
+  Scenario: All Elements Present (With Recursion) - Positive - Without using AllThere
+    Given I have disabled the SitePrism AllThere gem
+    When I navigate to the letter A page
+    Then all elements and first-generation descendants are present
+
+  Scenario: All Elements Present (With Recursion) - Negative - Without using AllThere
+    Given I have disabled the SitePrism AllThere gem
+    When I navigate to the nested section page
+    Then all elements and first-generation descendants are not present
+
   Scenario: Elements Present - Positive
     When I navigate to the letter A page
     Then all mapped elements are present
@@ -52,3 +70,7 @@ Feature: Page Properties
   @slow-test
   Scenario: Elements Present - Negative
     Then not all mapped elements are present
+
+  Scenario: Missing Elements
+    When I navigate to a page with no title
+    Then all missing elements are returned

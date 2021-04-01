@@ -3,16 +3,25 @@
 require 'site_prism/error'
 require 'addressable/template'
 
+# [SitePrism] namespace
+# We autoload our files underneath here to provide a slightly more optimal load solution
 module SitePrism
   autoload :AddressableUrlMatcher, 'site_prism/addressable_url_matcher'
   autoload :DSL, 'site_prism/dsl'
+  autoload :Deprecator, 'site_prism/deprecator'
   autoload :ElementChecker, 'site_prism/element_checker'
+  autoload :Loadable, 'site_prism/loadable'
   autoload :Logger, 'site_prism/logger'
   autoload :Page, 'site_prism/page'
+  autoload :RecursionChecker, 'site_prism/recursion_checker'
+  autoload :RspecMatchers, 'site_prism/rspec_matchers'
   autoload :Section, 'site_prism/section'
+  autoload :Timer, 'site_prism/timer'
   autoload :Waiter, 'site_prism/waiter'
 
   class << self
+    attr_reader :use_all_there_gem
+
     def configure
       yield self
     end
@@ -62,6 +71,14 @@ module SitePrism
     #   => :UNKNOWN # By default
     def log_level
       %i[DEBUG INFO WARN ERROR FATAL UNKNOWN][logger.level]
+    end
+
+    # Whether you wish to use the new experimental all_there dependent gem
+    #   This will be enforced from site_prism v4 onwards as this is where
+    #   the development of this functionality will be focused
+    def use_all_there_gem=(value)
+      logger.debug("Setting use_all_there_gem to #{value}")
+      @use_all_there_gem = value
     end
   end
 end
