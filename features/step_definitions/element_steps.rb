@@ -57,14 +57,18 @@ Then('all mapped elements are present') do
   mapped_item_names =
     @test_site.dynamic.class.mapped_items.map(&:values).flatten
 
-  expect(@test_site.dynamic.elements_present).to eq(mapped_item_names)
+  expect(@test_site.dynamic.elements_present).to match_array(mapped_item_names)
 end
 
 Then('not all mapped elements are present') do
   mapped_item_names =
-    @test_site.dynamic.class.mapped_items.map(&:values).flatten
+    @test_site.home.class.mapped_items.map(&:values).flatten
 
-  expect(@test_site.dynamic.elements_present).not_to eq(mapped_item_names)
+  expect(@test_site.home.elements_present).not_to match_array(mapped_item_names)
+end
+
+Then('all missing elements are returned') do
+  expect(@test_site.no_title.elements_missing).to match_array([:missing_messages])
 end
 
 Then('the previously visible element is invisible') do
@@ -82,4 +86,29 @@ end
 
 Then('I can obtain the native property of a section') do
   expect(@test_site.home.people.native).to be_a Selenium::WebDriver::Element
+end
+
+Then('RSpec matchers still work') do
+  @test_site.home.people do
+    expect(true).to be true
+    expect(5).to be_odd
+    expect(nil).to be_falsy
+    expect(Class.new).to respond_to(:to_s)
+    expect([]).to be_empty
+  end
+end
+
+Then('Capybara matchers still work') do
+  @test_site.home.people do |section|
+    # Inside here, page is scoped as section
+    expect(section).to have_content('People')
+    expect(page).to have_content('Andy')
+    expect(section).to have_text('Bob')
+    expect(page).to have_text('Charlie')
+  end
+
+  expect(@test_site.home).to have_content('Home Page!')
+  expect(@test_site.home).to have_text('This is the home page')
+  expect(@test_site.home).to have_link
+  expect(@test_site.home).to have_link('a')
 end

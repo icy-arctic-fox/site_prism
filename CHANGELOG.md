@@ -1,11 +1,235 @@
-<!-- #362 - Mar 19th - Last update to this document -->
+## Unreleased
+### Removed
+
+### Added
+
+### Changed
+- Bumped a whole raft of dev dependencies
+([luke-hill])
+
+- Minor lib/spec optimisations from `rubocop-performance`
+([luke-hill])
+  
+### Fixed
+
+## [3.7.1] - 2021-02-19
+### Added
+- Bumped the suite's rubocop gems significantly (As we were tracking behind)
+  - In lieu of this, Some changes were made to the suite styles and auto-config was re-generated
+  - A whole host of documentation updates were made to code-areas lacking it
+([luke-hill])
+
+### Changed
+- Minor refactors
+  - Updated some internal DSL code
+  - Updated development dependencies to be something more reasonable
+([luke-hill])
+
+## [3.7] - 2020-10-15
+### Added
+- Updated README to clarify `displayed?` wait behavior and finder method delegation ([asavageiv])
+
+### Changed
+**Internal Breaking Change**:
+- Performed a massive refactor of internal SitePrism logic
+  - `SitePrism::Section` now delegates based on the desired approach from `capybara` to delegate through a `#to_capybara_node` call
+  - SitePrism's own `#root_element` now used as a scoping approach, not a `#page` override
+  - All delegation logic now just passes object invocation / arguments to Element / Session accordingly
+  - Extra logging added where appropriate
+  - `capybara` gem now permitted to go above `3.30`
+([twalpole] & [ineverov] & [luke-hill])
+
+- Gem bumps to dev dependencies
+  - `rubocop` now must be 0.83.x which permits the NewCops param
+  - `selenium-webdriver` minimum supported version is now `3.11`
+([luke-hill])
+
+## [3.6] - 2020-08-17
+### Added
+- Added `#elements_missing` method which returns all missing elements from the expected_elements list ([ineverov])
+
+### Changed
+- **Required Ruby Version is now 2.4+**
+  - Alongside this, initial support will be offered for `selenium-webdriver` in alpha versions
+([luke-hill])
+
+- Refined SitePrism's `Waiter.wait_until_true` logic
+  - SitePrism can now be used with `Timecop.freeze` and Rails' `travel_to`
+  - `FrozenInTimeError` was removed as it is no longer needed
+([sos4nt])
+
+### Fixed
+- SitePrism's RSpec matchers fall back to behaviour matching that of the standard RSpec
+  built-in matchers when called on anything that is not a SitePrism object.
+([lparry] & [luke-hill])
+
+- Fixed up a bunch more RSpec cop offenses and updated the minimum dev requirement of rubocop to `0.81` as it was ancient!
+([luke-hill])
+
+## [3.5] - 2020-06-04
+### Added
+- Added new logging that will notify users (And team!), when a user creates a name with a `no_` prefix
+  - This will cause race condition conflicts which are intractable, and as such will be banned in a later release
+([anuj-ssharma] & [luke-hill])
+
+### Fixed
+- Fixed warnings about keyword arguments in Ruby 2.7
+  - The official explanation of keyword arguments in Ruby 2.7 can be found [HERE](https://www.ruby-lang.org/en/news/2019/12/12/separation-of-positional-and-keyword-arguments-in-ruby-3-0/)
+([oieioi])
+
+- Generic suite fixes for making tests more robust
+([ineverov])
+
+- Fixed an issue where block syntax wouldn't work properly for a singular DSL item (element / section)
+  - If using one of these items, the block syntax would only work on initialization, as such it is advised to
+  use SitePrism's `#within` scoping method which accesses the Capybara one using the SitePrism initializer.
+  Read [HERE](https://github.com/site-prism/site_prism#accessing-within-a-collection-of-sections) for more info
+([tgaff])
+
+## [3.4.2] - 2020-01-30
+### Added
+- Simplecov now triggers for both local and CI builds
+([luke-hill])
+
+### Changed
+- All internal SitePrism tests now will enable `site_prism-all_there` gem by default
+  - Note there are still a couple of tests that make use of not using this
+  (Whilst the gem is still optional)
+  - During the `v3.x` series this gem will slowly move more into mainstream and will become the default
+  option for `v4.0`
+([luke-hill])
+
+- Travis now builds on ruby `2.7` instead of `ruby-head`
+([luke-hill])
+
+- gemspec now forces version `0.3.1` minimum of `site_prism-all_there`
+  - This will include the latest bug-fix required to make the gem fully operational
+  - All versions up to `< 1` are permitted to future-proof it against further tweaks
+([luke-hill])
+
+- v13 of `rake` can now be used
+([luke-hill])
+
+### Fixed
+- Fixed up some RSpec cop offenses & Added reasons for rule definitions
+([luke-hill])
+
+## [3.4.1] - 2019-09-26
+### Changed
+- Update the `Gemfile.low_spec` as it was untouched in over 6months
+([luke-hill])
+
+- Unlock `site_prism-all_there` to any `0.x` version higher than `0.3` now it is more stable
+([luke-hill])
+
+- Added more rubocop rule definitions
+([luke-hill])
+
+### Fixed
+- Fixed up some RSpec cop offenses
+([luke-hill])
+
+## [3.4] - 2019-08-01
+### Added
+- Added first bunch of Feature Deprecation notices for users to advise of the items which
+will either be changing for version4 or being removed entirely.
+  - This also advises of a couple of areas that had some minor bugs in the codebase in the DSL
+  creation phase (These will be fixed going forwards in v4)
+([luke-hill])
+
+- Added `rubocop-rspec` and regenerated the `.rubocop_todo.yml` file, fixing up some cops in the process
+([luke-hill])
+
+### Changed
+- `#all_there?` now can be used both internally by site_prism and by the all_there gem
+  - Users can set `SitePrism.use_all_there_gem` to use the latest bleeding edge logic
+  - Note this also requires users to use the `0.2` version of the new gem
+  - Users need to manually add `require site_prism-all_there` whilst this gem is still under
+  migration from the existing code-base. It will be auto-added at a later date
+([luke-hill])
+
+- Upped some gem dependencies
+  - `rubocop` now is upped to `0.73`, `rubocop` performance is at `1.4`
+  - Added `rubocop-rspec` and re-generated config file (Plenty to fix up)
+  - `simplecov` minimum requirement is `0.17`
+([luke-hill])
+
+### Fixed
+- Fixed all legacy links to ([natritmeyer])'s Github page. They all now point here.
+([luke-hill] & [igas])
+
+- Fixed up / Improved some dead documentation links on the README, warning about outdated plugins
+([luke-hill])
+
+## [3.3] - 2019-07-01
+### Added
+- Initial `#all_there?` recursion logic
+  - For now only two options are valid (`:none` and `:one`)
+  - When setting it to `:none` (The default), the behaviour is identical
+  - When setting it to `:one`, `#all_there?` will recurse through every section and sections item
+  that has been defined, and run `#all_there?` on those items also.
+
+  **NB: This is very much a working prototype, and additional refactors / tweaks will be forthcoming**
+([luke-hill])
+
+- Added a feature deprecator to allow easier deprecation / removal of obsolete or old parts of
+the codebase
+([luke-hill])
+
+### Changed
+- SitePrism is now hosted in it's own individual organisation! Special thanks to everyone who has helped
+out in the past, but now we're looking to host multiple co-dependent gems from this new organisation
+([luke-hill])
+
+- Capybara dependency has been slightly bumped from `3.2+` to `3.3+` to mitigate against a minor
+locator reference issue (None reported, but future-proofing)
+([luke-hill])
+
+### Fixed
+- README fixes
+([andyw8] & [TheSpartan1980])
+
+- Fix an issue where chrome wasn't building successfully due to the migration to W3C capabilities
+([luke-hill])
+
+## [3.2] - 2019-05-14
+### Added
+- Allow `#load` to be called with a new option `:with_validations`
+  - When this is set to `false` this will skip load_validations for the one method invocation
+  - If not passed in or set to `true` the previous behaviour is retained (Validations running)
+([JanStevens])
+
+- `rubocop-performance` has been added as a development dependency to future-proof against
+impending major rubocop release
+([luke-hill])
+
+- When using rspec matchers, the `.not_to` matcher will now use the `has_no_<element>?` method call
+  - Previously this used the `!has_<element>?` call, which waited for the full duration to fail
+([hoffi])
+
+- Added new `#wait_until_displayed` method that sits alongside `#displayed?`
+  - Initial `#displayed?` call has now been refactored to be a bit cleaner
+  - `#wait_until_displayed` will wait or crash (Not return a booleanlike `#displayed?`
+([TheSpartan1980] & [luke-hill])
+
+### Changed
+- `rubocop` rules regarding formatting (To bring it more in-line with the 21st century!)
+([luke-hill])
+
+### Fixed
+- Travis now uses `webdrivers` gem to build and mitigate driver issues
+([luke-hill])
+
+- SitePrism can now detect if Time has been frozen (i.e. with Timecop), whilst using `.wait_until_true`
+([dkniffin])
+
 ## [3.1] - 2019-03-26
 ### Added
-- Add info on how to deal with V2->V3 upgrade warnings RE Capybara selectors
+- Add info on how to deal with V2 -> V3 upgrade warnings RE Capybara selectors
   - In particular how to deal with adding `wait` keys to `wait_until_*` methods
 ([tgaff])
 
-- Added gem version badge to README
+- Added gem version badge to `README.md`
 ([luke-hill])
 
 - Some of the README docs surrounding how to setup site_prism have been improved
@@ -20,16 +244,16 @@
 
 - The SitePrism Logger has been massively refactored
   - It now almost entirely mimics the Full Ruby Logger API
-  - The full list of delegated methods can be found [HERE](https://github.com/natritmeyer/site_prism/blob/master/lib/site_prism.rb)
+  - The full list of delegated methods can be found [HERE](https://github.com/site-prism/site_prism/blob/v3.1/lib/site_prism.rb)
   - Consequently, the minimum Ruby Version for the suite has been bumped to `2.3`
   - Alongside this higher ruby requirement, changes have been made to Capybara/Rubocop/Test code
 ([luke-hill])
 
 ### Changed
-- Travis now uses `xenial` Ubuntu in the Docker VM Tests, bringing it slightly more up to date
+- Travis now uses `xenial` Ubuntu in the Docker VM Tests, bringing it more up to date
 ([luke-hill])
 
-- Travis now will build on some more legacy permutations of gems to increase support
+- Travis now will build on some more (older), permutations of gems to increase test coverage
 ([luke-hill])
 
 - The `HISTORY.md` document has now moved to `CHANGELOG.md` to try keep it in-line with other OSS repos
@@ -43,7 +267,7 @@
   - This has also enabled the Mock Pages to be a little more extensible going forwards
 ([luke-hill])
 
-- Added waiter methods for iFrame's that were previously missing, bringing them in-line with other items
+- Added waiter methods for iFrame's that were previously missing, bringing them in-line with other DSL items
 ([luke-hill])
 
 ## [3.0.3] - 2019-02-20
@@ -59,7 +283,7 @@
 
 ### Fixed
 - Fixed an issue that caused SitePrism not to change scopes when two different Capybara sessions were in use
-([luke-hill]) & ([twalpole])
+([luke-hill] & [twalpole])
 
 - Fixed an issue where SitePrism could fail a travis build because of the load order of tests
   - This was caused by a state leakage between a single Unit Test that wasn't caught by an RSpec hook
@@ -69,7 +293,7 @@
   - Are now slightly optimised making 2 less checks per batch (One less check per initial run)
   - Actually perform the checks they were documented to (They didn't run against a url without a block)
   - Fix `#loaded` `attr_accessor` to actually cache - It never did! (This speeds up `#loaded?` calls)
-  - Add a couple more specs and a bunch of new scenarios to cover these missing edge cases 
+  - Add a couple more specs and a bunch of new scenarios to cover these missing edge cases
 ([luke-hill])
 
 ## [3.0.2] - 2019-01-21
@@ -104,13 +328,13 @@
   - All files now match their class names
   - All sample items are now more succinctly named
   - Removed some of the slower JS injected components in favour of the Slow/Vanishing pages
-([luke-hill]) 
+([luke-hill])
 
 - Item mapping (A large component of the site_prism build phase) has been refactored and slightly extended
   - Initially we will map the "type" of each site_prism item that has been mapped.
   - The public interface has been refactored to accommodate that and provide a like for like replacement
   - This will be the base of the work required to extend `#all_there?` to provide recursion capabilities
-([luke-hill]) 
+([luke-hill])
 
 - Upped some gem dependencies
   - `rubocop` now is finally upped to v60 (More to come)
@@ -118,13 +342,13 @@
   - `capybara` is now only supported on `2.18` outside of the `3.x` series
   - `cucumber` / `selenium-webdriver` both bumped one minor version
 ([luke-hill])
-  
+
 ### Fixed
 - A config setting that causes local single test (rspec/cucumber) runs to crash
   - This is due to `simplecov` caching dual results
 ([luke-hill])
 
-- Stopped Ruby 2.5 users getting spammed with warnings about uninitialised instance variables
+- Stopped Ruby `2.5` users getting spammed with warnings about uninitialised instance variables
 ([menge101])
 
 - Updated user documentation to not advise using now removed methods!
@@ -241,7 +465,7 @@
 ([luke-hill])
 
 - Altered `HISTORY.md` into more hyperlinked and declarative format
-([luke-hill]) & ([JaniJegoroff])
+([luke-hill] & [JaniJegoroff])
 
 - Tidied up the Sample HTML files so they had less un-required information
 ([luke-hill])
@@ -307,10 +531,10 @@
 ([ineverov])
 
 - Fix implicit waiting not working for some DSL defined methods
-([luke-hill]) & ([tgaff])
+([luke-hill] & [tgaff])
 
 - Add better error message when iFrame's are called without a block (Than a stacktrace)
-([luke-hill]) & ([mdesantis])
+([luke-hill] & [mdesantis])
 
 ## [2.14] - 2018-06-22
 ### Removed
@@ -340,7 +564,7 @@
 ([luke-hill])
 
 - Rewrite `ElementContainer` by using `klass.extend`, removing several `self.class` calls
-([ineverov]) 
+([ineverov])
 
 - Added positive and negative timing tests to several scenarios in `waiting.feature`
 ([luke-hill])
@@ -357,7 +581,7 @@
 ([twalpole])
 
 - rubocop fixes
-([ineverov]) & ([jgs731])
+([ineverov] & [jgs731])
 
 ## [2.13] - 2018-05-21
 ### Removed
@@ -395,7 +619,7 @@
 ([luke-hill])
 
 ### Fixed
-- README fixes
+- `README.md` fixes
 ([robd])
 
 ## [2.12] - 2018-04-20
@@ -404,7 +628,7 @@
 ([luke-hill])
 
 - Update Travis Environment to now test on Chrome and Firefox
-([RustyNail]) & ([luke-hill])
+([RustyNail] & [luke-hill])
 
 ### Changed
 - Updated development dependencies to be a little more up to date
@@ -420,7 +644,7 @@
 ([luke-hill])
 
 ### Fixed
-- README / rubocop / Test / TODO fixes
+- `README.md` / rubocop / Test / TODO fixes
 ([luke-hill])
 
 - Fix suite incidentally masking several issues due to incorrect cucumber setup
@@ -445,7 +669,7 @@
 
 ### Changed
 - Use the `.gemspec` file for all gem versions and remove any references to gems in `Gemfile`
-([luke-hill]) & ([tgaff])
+([luke-hill] & [tgaff])
 
 - Compressed `Rakefile` into smaller tasks for Increased Verbosity on Failures
 ([luke-hill])
@@ -489,7 +713,7 @@
   - Required Ruby Version is now 2.0+
 ([luke-hill])
 
-- Capped Development dependencies for `cucumber (2.4)` and `selenium-webdriver (3.4)` 
+- Capped Development dependencies for `cucumber (2.4)` and `selenium-webdriver (3.4)`
   - Establish a baseline for what is expected with these dependencies
   - Suite is still being reworked (So unsure of what results to expect)
 ([luke-hill])
@@ -507,7 +731,7 @@
 ([RustyNail])
 
 - README / rubocop fixes
-([luke-hill]) & ([iwollmann])
+([luke-hill] & [iwollmann])
 
 ## [2.9.1] - 2018-02-20
 ### Removed
@@ -526,7 +750,7 @@
 
 ### Fixed
 - README / rubocop fixes
-([whoojemaflip]) & ([natritmeyer]) & ([luke-hill])
+([whoojemaflip] & [natritmeyer] & [luke-hill])
 
 - Fixed namespace clashes with sections and rspec
 ([tobithiel])
@@ -550,7 +774,7 @@
 
 ### Fixed
 - README / rubocop fixes
-([nitinsurfs]) & ([cantonic]) & ([bhaibel]) & ([natritmeyer])
+([nitinsurfs] & [cantonic] & [bhaibel] & [natritmeyer])
 
 - Fix a Section Element calling `#text` incorrectly returning the full page text
 ([ddzz])
@@ -568,7 +792,7 @@
 - Use the latest version of Capybara's waiting time method
   - `#default_max_wait_time` from Capybara 2.5 onwards
   - `#default_wait_time` for 2.4 and below
-([tpbowden]) & ([mnohai-mdsol]) & ([tmertens])
+([tpbowden] & [mnohai-mdsol] & [tmertens])
 
 - Simplified `#secure?` method
 ([benlovell])
@@ -595,23 +819,23 @@
   - Substituting all parts of url_matcher into the relevant types (port/fragment e.t.c.)
   - Only pass the matching test after each component part matches the `url_matcher` set
 ([jmileham])
-  
+
 - Added check for block being passed to page (Will raise error accordingly)
 ([sponte])
 
 ### Changed
 - Altered legacy RSpec syntax in favour of `expect` in tests
-([petergoldstein]) 
+([petergoldstein])
 
 - Extend `#displayed?` to work when a `url_matcher` is templated
 ([jmileham])
 
 ### Fixed
 - README doc fixes
-([vanburg]) & ([csgavino])
+([vanburg] & [csgavino])
 
 - Amended issues that occurred on RSpec 3 by making the suite agnostic to the version used
-([tgaff]) & ([natritmeyer])
+([tgaff] & [natritmeyer])
 
 - Internal test suite altered to avoid conflicting with Capybara's `#title` method
 ([tgaff])
@@ -623,11 +847,11 @@
 
 ### Changed
 - Upped Version Dependency of rspec to `< 4.0`, and altered it to be a development dependency
-([soulcutter]) & ([KarthikDot]) & ([natritmeyer])
+([soulcutter] & [KarthikDot] & [natritmeyer])
 
 ### Fixed
 - README / License data inconsistencies
-([dnesteryuk]) & ([natritmeyer])
+([dnesteryuk] & [natritmeyer])
 
 - Using runtime options but not specifying a wait time would throw a Type mismatch error
   - This will now default to `Capybara.default_max_wait_time` if implicit waiting is enabled
@@ -656,11 +880,11 @@
 
 ### Changed
 - README tweaks relevant to the new version of the gem
-([abotalov]) & ([natritmeyer]) & ([tommyh])
+([abotalov] & [natritmeyer] & [tommyh])
 
 ### Fixed
 - README inconsistencies fixed
-([antonio]) & ([LukasMac]) & ([Mustang949])
+([antonio] & [LukasMac] & [Mustang949])
 
 - Allow `#displayed?` test used in load validations to use newly made `Waiter` class to avoid false failures
 ([tmertens])
@@ -692,7 +916,7 @@
 
 ## [2.3] - 2013-04-05
 ### Added
-- Initial Dynamic URL support 
+- Initial Dynamic URL support
   - Adds new dependency to suite `addressable`
   - Allows templating of URL parameters to be passed in as KVP's
 ([therabidbanana])
@@ -748,7 +972,7 @@
   - `capybara ~> 1.1`
   - `rspec ~> 2.0`
 ([natritmeyer])
-  
+
 - Internal API Changes:
   - `#element_names` is now `#mapped_items` in `SitePrism::Page` and `SitePrism::Section`
   - We now use a `build` method to decide what methods are created for each element/section and in what order
@@ -851,50 +1075,59 @@
 - First release!
 
 <!-- Releases -->
-[Unreleased]: https://github.com/natritmeyer/site_prism/compare/v3.1...master
-[3.1]:        https://github.com/natritmeyer/site_prism/compare/v3.0.3...v3.1
-[3.0.3]:      https://github.com/natritmeyer/site_prism/compare/v3.0.2...v3.0.3
-[3.0.2]:      https://github.com/natritmeyer/site_prism/compare/v3.0.1...v3.0.2
-[3.0.1]:      https://github.com/natritmeyer/site_prism/compare/v3.0...v3.0.1
-[3.0]:        https://github.com/natritmeyer/site_prism/compare/v3.0.beta...v3.0
-[3.0.beta]:   https://github.com/natritmeyer/site_prism/compare/v2.17.1...v3.0.beta
-[2.17.1]:     https://github.com/natritmeyer/site_prism/compare/v2.17...v2.17.1
-[2.17]:       https://github.com/natritmeyer/site_prism/compare/v2.16...v2.17
-[2.16]:       https://github.com/natritmeyer/site_prism/compare/v2.15.1...v2.16
-[2.15.1]:     https://github.com/natritmeyer/site_prism/compare/v2.15...v2.15.1
-[2.15]:       https://github.com/natritmeyer/site_prism/compare/v2.14...v2.15
-[2.14]:       https://github.com/natritmeyer/site_prism/compare/v2.13...v2.14
-[2.13]:       https://github.com/natritmeyer/site_prism/compare/v2.12...v2.13
-[2.12]:       https://github.com/natritmeyer/site_prism/compare/v2.11...v2.12
-[2.11]:       https://github.com/natritmeyer/site_prism/compare/v2.10...v2.11
-[2.10]:       https://github.com/natritmeyer/site_prism/compare/v2.9.1...v2.10
-[2.9.1]:      https://github.com/natritmeyer/site_prism/compare/v2.9...v2.9.1
-[2.9]:        https://github.com/natritmeyer/site_prism/compare/v2.8...v2.9
-[2.8]:        https://github.com/natritmeyer/site_prism/compare/v2.7...v2.8
-[2.7]:        https://github.com/natritmeyer/site_prism/compare/v2.6...v2.7
-[2.6]:        https://github.com/natritmeyer/site_prism/compare/v2.5...v2.6
-[2.5]:        https://github.com/natritmeyer/site_prism/compare/v2.4...v2.5
-[2.4]:        https://github.com/natritmeyer/site_prism/compare/v2.3...v2.4
-[2.3]:        https://github.com/natritmeyer/site_prism/compare/v2.2...v2.3
-[2.2]:        https://github.com/natritmeyer/site_prism/compare/v2.1...v2.2
-[2.1]:        https://github.com/natritmeyer/site_prism/compare/v2.0...v2.1
-[2.0]:        https://github.com/natritmeyer/site_prism/compare/v1.4...v2.0
-[1.4]:        https://github.com/natritmeyer/site_prism/compare/v1.3...v1.4
-[1.3]:        https://github.com/natritmeyer/site_prism/compare/v1.2...v1.3
-[1.2]:        https://github.com/natritmeyer/site_prism/compare/v1.1.1...v1.2
-[1.1.1]:      https://github.com/natritmeyer/site_prism/compare/v1.1...v1.1.1
-[1.1]:        https://github.com/natritmeyer/site_prism/compare/v1.0...v1.1
-[1.0]:        https://github.com/natritmeyer/site_prism/compare/v0.9.9...v1.0
-[0.9.9]:      https://github.com/natritmeyer/site_prism/compare/v0.9.8...v0.9.9
-[0.9.8]:      https://github.com/natritmeyer/site_prism/compare/v0.9.7...v0.9.8
-[0.9.7]:      https://github.com/natritmeyer/site_prism/compare/v0.9.6...v0.9.7
-[0.9.6]:      https://github.com/natritmeyer/site_prism/compare/v0.9.5...v0.9.6
-[0.9.5]:      https://github.com/natritmeyer/site_prism/compare/v0.9.4...v0.9.5
-[0.9.4]:      https://github.com/natritmeyer/site_prism/compare/v0.9.3...v0.9.4
-[0.9.3]:      https://github.com/natritmeyer/site_prism/compare/v0.9.2...v0.9.3
-[0.9.2]:      https://github.com/natritmeyer/site_prism/compare/v0.9.1...v0.9.2
-[0.9.1]:      https://github.com/natritmeyer/site_prism/compare/v0.9...v0.9.1
-[0.9]:        https://github.com/natritmeyer/site_prism/compare/7b15706...v0.9
+[Unreleased]: https://github.com/site-prism/site_prism/compare/v3.7.1...main
+[3.7.1]:      https://github.com/site-prism/site_prism/compare/v3.7...v3.7.1
+[3.7]:        https://github.com/site-prism/site_prism/compare/v3.6...v3.7
+[3.6]:        https://github.com/site-prism/site_prism/compare/v3.5...v3.6
+[3.5]:        https://github.com/site-prism/site_prism/compare/v3.4.2...v3.5
+[3.4.2]:      https://github.com/site-prism/site_prism/compare/v3.4.1...v3.4.2
+[3.4.1]:      https://github.com/site-prism/site_prism/compare/v3.4...v3.4.1
+[3.4]:        https://github.com/site-prism/site_prism/compare/v3.3...v3.4
+[3.3]:        https://github.com/site-prism/site_prism/compare/v3.2...v3.3
+[3.2]:        https://github.com/site-prism/site_prism/compare/v3.1...v3.2
+[3.1]:        https://github.com/site-prism/site_prism/compare/v3.0.3...v3.1
+[3.0.3]:      https://github.com/site-prism/site_prism/compare/v3.0.2...v3.0.3
+[3.0.2]:      https://github.com/site-prism/site_prism/compare/v3.0.1...v3.0.2
+[3.0.1]:      https://github.com/site-prism/site_prism/compare/v3.0...v3.0.1
+[3.0]:        https://github.com/site-prism/site_prism/compare/v3.0.beta...v3.0
+[3.0.beta]:   https://github.com/site-prism/site_prism/compare/v2.17.1...v3.0.beta
+[2.17.1]:     https://github.com/site-prism/site_prism/compare/v2.17...v2.17.1
+[2.17]:       https://github.com/site-prism/site_prism/compare/v2.16...v2.17
+[2.16]:       https://github.com/site-prism/site_prism/compare/v2.15.1...v2.16
+[2.15.1]:     https://github.com/site-prism/site_prism/compare/v2.15...v2.15.1
+[2.15]:       https://github.com/site-prism/site_prism/compare/v2.14...v2.15
+[2.14]:       https://github.com/site-prism/site_prism/compare/v2.13...v2.14
+[2.13]:       https://github.com/site-prism/site_prism/compare/v2.12...v2.13
+[2.12]:       https://github.com/site-prism/site_prism/compare/v2.11...v2.12
+[2.11]:       https://github.com/site-prism/site_prism/compare/v2.10...v2.11
+[2.10]:       https://github.com/site-prism/site_prism/compare/v2.9.1...v2.10
+[2.9.1]:      https://github.com/site-prism/site_prism/compare/v2.9...v2.9.1
+[2.9]:        https://github.com/site-prism/site_prism/compare/v2.8...v2.9
+[2.8]:        https://github.com/site-prism/site_prism/compare/v2.7...v2.8
+[2.7]:        https://github.com/site-prism/site_prism/compare/v2.6...v2.7
+[2.6]:        https://github.com/site-prism/site_prism/compare/v2.5...v2.6
+[2.5]:        https://github.com/site-prism/site_prism/compare/v2.4...v2.5
+[2.4]:        https://github.com/site-prism/site_prism/compare/v2.3...v2.4
+[2.3]:        https://github.com/site-prism/site_prism/compare/v2.2...v2.3
+[2.2]:        https://github.com/site-prism/site_prism/compare/v2.1...v2.2
+[2.1]:        https://github.com/site-prism/site_prism/compare/v2.0...v2.1
+[2.0]:        https://github.com/site-prism/site_prism/compare/v1.4...v2.0
+[1.4]:        https://github.com/site-prism/site_prism/compare/v1.3...v1.4
+[1.3]:        https://github.com/site-prism/site_prism/compare/v1.2...v1.3
+[1.2]:        https://github.com/site-prism/site_prism/compare/v1.1.1...v1.2
+[1.1.1]:      https://github.com/site-prism/site_prism/compare/v1.1...v1.1.1
+[1.1]:        https://github.com/site-prism/site_prism/compare/v1.0...v1.1
+[1.0]:        https://github.com/site-prism/site_prism/compare/v0.9.9...v1.0
+[0.9.9]:      https://github.com/site-prism/site_prism/compare/v0.9.8...v0.9.9
+[0.9.8]:      https://github.com/site-prism/site_prism/compare/v0.9.7...v0.9.8
+[0.9.7]:      https://github.com/site-prism/site_prism/compare/v0.9.6...v0.9.7
+[0.9.6]:      https://github.com/site-prism/site_prism/compare/v0.9.5...v0.9.6
+[0.9.5]:      https://github.com/site-prism/site_prism/compare/v0.9.4...v0.9.5
+[0.9.4]:      https://github.com/site-prism/site_prism/compare/v0.9.3...v0.9.4
+[0.9.3]:      https://github.com/site-prism/site_prism/compare/v0.9.2...v0.9.3
+[0.9.2]:      https://github.com/site-prism/site_prism/compare/v0.9.1...v0.9.2
+[0.9.1]:      https://github.com/site-prism/site_prism/compare/v0.9...v0.9.1
+[0.9]:        https://github.com/site-prism/site_prism/compare/7b15706...v0.9
 
 <!-- Contributors in chronological order -->
 [natritmeyer]:    https://github.com/natritmeyer
@@ -954,3 +1187,12 @@
 [menge101]:       https://github.com/menge101
 [TheSpartan1980]: https://github.com/TheSpartan1980
 [tadashi0713]:    https://github.com/tadashi0713
+[JanStevens]:     https://github.com/JanStevens
+[dkniffin]:       https://github.com/dkniffin
+[hoffi]:          https://github.com/hoffi
+[igas]:           https://github.com/igas
+[oieioi]:         https://github.com/oieioi
+[anuj-ssharma]:   https://github.com/anuj-ssharma
+[sos4nt]:         https://github.com/sos4nt
+[lparry]:         https://github.com/lparry
+[asavageiv]:      https://github.com/asavageiv

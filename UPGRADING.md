@@ -38,7 +38,7 @@ end
 ## Error Classes
 
 The entire set of error names have been re-written.
-Check [error.rb](https://github.com/natritmeyer/site_prism/blob/master/lib/site_prism/error.rb)
+Check [error.rb](https://github.com/site-prism/site_prism/blob/main/lib/site_prism/error.rb)
 for previous names.
 
 ## Configuration Options
@@ -62,17 +62,17 @@ The wait time should now be passed using hash args like: `wait: <seconds>`
 
 For example, previously:
 
-```rb
+```ruby
 @page.wait_until_dialog_invisible(10)
 @page.wait_until_notification_flag_visible(5, count: 3)
 ```
 
 These now become:
 
-```rb
+```ruby
 @page.wait_until_dialog_invisible(wait: 10)
 @page.wait_until_notification_flag_visible(wait: 5, count: 3)
 ```
 
 > Note: If after upgrading you see `Unused parameters passed to Capybara::Queries::SelectorQuery : [NUMBER]`
-this may indicate that you need to make this change.
+this may indicate that you still need to make this change.

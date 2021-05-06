@@ -2,17 +2,30 @@
 
 describe SitePrism do
   # Stop the $stdout process leaking cross-tests
-  before(:each) { wipe_logger! }
+  before { wipe_logger! }
+
+  describe '.configure' do
+    it 'can configure items in a configure block' do
+      expect(described_class).to receive(:configure).once
+
+      described_class.configure { |_| :foo }
+    end
+
+    it 'yields the configured options' do
+      expect(described_class).to receive(:log_level=).with(:WARN)
+
+      described_class.configure do |config|
+        config.log_level = :WARN
+      end
+    end
+  end
 
   describe '.logger' do
-    context 'at default severity' do
+    context 'with default severity' do
       it 'does not log messages below UNKNOWN' do
         log_messages = capture_stdout do
-          SitePrism.logger.debug('DEBUG')
-          SitePrism.logger.info('INFO')
-          SitePrism.logger.warn('WARN')
-          SitePrism.logger.error('ERROR')
-          SitePrism.logger.fatal('FATAL')
+          described_class.logger.debug('DEBUG')
+          described_class.logger.fatal('FATAL')
         end
 
         expect(log_messages).to be_empty
@@ -20,110 +33,92 @@ describe SitePrism do
 
       it 'logs UNKNOWN level messages' do
         log_messages = capture_stdout do
-          SitePrism.logger.info('INFO')
-          SitePrism.logger.unknown('UNKNOWN')
+          described_class.logger.unknown('UNKNOWN')
         end
 
         expect(lines(log_messages)).to eq(1)
       end
     end
 
-    context 'at an altered severity' do
-      it 'logs messages at all levels above the new severity' do
-        log_messages = capture_stdout do
-          SitePrism.log_level = :DEBUG
+    context 'with an altered severity' do
+      let(:log_messages) do
+        capture_stdout do
+          described_class.log_level = :DEBUG
 
-          SitePrism.logger.debug('DEBUG')
-          SitePrism.logger.info('INFO')
-          SitePrism.logger.warn('WARN')
+          described_class.logger.debug('DEBUG')
+          described_class.logger.info('INFO')
         end
-
-        expect(lines(log_messages)).to eq(3)
       end
-    end
-  end
 
-  describe '.log_level' do
-    subject { SitePrism.log_level }
-
-    context 'by default' do
-      it { is_expected.to eq(:UNKNOWN) }
-    end
-
-    context 'after being changed to INFO' do
-      before { SitePrism.log_level = :INFO }
-
-      it { is_expected.to eq(:INFO) }
-    end
-  end
-
-  describe '.log_level=' do
-    it 'can alter the log level' do
-      expect(SitePrism).to respond_to(:log_level=)
-    end
-  end
-
-  describe '.configure' do
-    it 'can configure the logger in a configure block' do
-      expect(SitePrism).to receive(:configure).once
-
-      SitePrism.configure { |_| :foo }
-    end
-
-    it 'yields the configured options' do
-      expect(SitePrism).to receive(:logger)
-      expect(SitePrism).to receive(:log_level)
-      expect(SitePrism).to receive(:log_level=)
-
-      SitePrism.configure do |config|
-        config.logger
-        config.log_level
-        config.log_level = :WARN
+      it 'logs messages at all levels equal or above the new severity' do
+        expect(lines(log_messages)).to eq(2)
       end
     end
   end
 
   describe '.log_path=' do
-    context 'to a file' do
+    context 'when set to a file' do
       let(:filename) { 'sample.log' }
       let(:file_content) { File.read(filename) }
 
-      before { SitePrism.log_path = filename }
+      before { described_class.log_path = filename }
+
       after { File.delete(filename) if File.exist?(filename) }
 
       it 'sends the log messages to the file-path provided' do
-        SitePrism.logger.unknown('This is sent to the file')
+        described_class.logger.unknown('This is sent to the file')
 
         expect(file_content).to end_with("This is sent to the file\n")
       end
     end
 
-    context 'to $stderr' do
+    context 'when set to $stderr' do
       it 'sends the log messages to $stderr' do
         expect do
-          SitePrism.log_path = $stderr
-          SitePrism.logger.unknown('This is sent to $stderr')
+          described_class.log_path = $stderr
+          described_class.logger.unknown('This is sent to $stderr')
         end.to output(/This is sent to \$stderr/).to_stderr
       end
     end
   end
 
-  def capture_stdout
-    original_stdout = $stdout
-    $stdout = StringIO.new
-    yield
-    $stdout.string
-  ensure
-    $stdout = original_stdout
+  describe '.log_level=' do
+    it 'can alter the log level' do
+      expect(described_class).to respond_to(:log_level=)
+    end
   end
 
-  def wipe_logger!
-    return unless SitePrism.instance_variable_get(:@logger)
+  describe '.log_level' do
+    subject { described_class.log_level }
 
-    SitePrism.remove_instance_variable(:@logger)
+    it { is_expected.to eq(:UNKNOWN) }
+
+    context 'when changed to `INFO`' do
+      before { described_class.log_level = :INFO }
+
+      it { is_expected.to eq(:INFO) }
+    end
   end
 
-  def lines(string)
-    string.split("\n").length
+  describe '.use_all_there_gem' do
+    subject { described_class.use_all_there_gem }
+
+    let!(:original_value) { described_class.use_all_there_gem }
+
+    after { described_class.use_all_there_gem = original_value }
+
+    it { is_expected.to be true }
+
+    context 'when changed to `true`' do
+      before { described_class.use_all_there_gem = false }
+
+      it { is_expected.to be false }
+    end
+  end
+
+  describe '.use_all_there_gem=' do
+    it 'can alter whether site_prism uses the new gem to run #all_there?' do
+      expect(described_class).to respond_to(:use_all_there_gem=)
+    end
   end
 end

@@ -4,7 +4,6 @@ require 'site_prism/loadable'
 require 'capybara/dsl'
 
 module SitePrism
-  # rubocop:disable Metrics/ClassLength
   class Page
     include Capybara::DSL
     include ElementChecker
@@ -35,11 +34,7 @@ module SitePrism
     end
 
     def page
-      if defined?(@page)
-        @page
-      else
-        Capybara.current_session
-      end
+      (defined?(@page) && @page) || Capybara.current_session
     end
 
     # Loads the page.
@@ -72,31 +67,28 @@ module SitePrism
     end
 
     def displayed?(*args)
-      expected_mappings = args.last.is_a?(::Hash) ? args.pop : {}
-      seconds = !args.empty? ? args.first : Capybara.default_max_wait_time
+      wait_until_displayed(*args)
+    rescue SitePrism::TimeoutError
+      false
+    end
+
+    def wait_until_displayed(*args)
       raise SitePrism::NoUrlMatcherForPageError unless url_matcher
 
-      begin
-        Waiter.wait_until_true(seconds) { url_matches?(expected_mappings) }
-      rescue SitePrism::TimeoutError
-        false
-      end
+      expected_mappings = args.last.is_a?(::Hash) ? args.pop : {}
+      seconds = args&.first || Capybara.default_max_wait_time
+      Waiter.wait_until_true(seconds) { url_matches?(expected_mappings) }
     end
 
     def url_matches(seconds = Capybara.default_max_wait_time)
       return unless displayed?(seconds)
+      return regexp_backed_matches if url_matcher.is_a?(Regexp)
 
-      if url_matcher.is_a?(Regexp)
-        regexp_backed_matches
-      else
-        template_backed_matches
-      end
+      template_backed_matches
     end
 
     def url(expansion = {})
-      return nil if self.class.url.nil?
-
-      Addressable::Template.new(self.class.url).expand(expansion).to_s
+      self.class.url && Addressable::Template.new(self.class.url).expand(expansion).to_s
     end
 
     def url_matcher
@@ -168,10 +160,9 @@ module SitePrism
       visit expanded_url
       if with_validations
         when_loaded(&block)
-      elsif block_given?
+      elsif block
         yield self
       end
     end
   end
-  # rubocop:enable Metrics/ClassLength
 end

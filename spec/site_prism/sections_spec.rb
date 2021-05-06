@@ -1,49 +1,48 @@
 # frozen_string_literal: true
 
-describe SitePrism::Page do
-  subject { Page.new }
+describe SitePrism::Section do
+  let(:page_instance) { page.new }
+  let(:page) do
+    plural_sections = Class.new(described_class)
+    plural_sections_with_defaults =
+      Class.new(described_class) do
+        set_default_search_arguments :css, '.section'
+      end
 
-  class PluralSections < SitePrism::Section; end
-
-  class PluralSectionsWithDefaults < SitePrism::Section
-    set_default_search_arguments :css, '.section'
-  end
-
-  class Page < SitePrism::Page
-    sections :plural_sections,               PluralSections, '.tim'
-    sections :plural_sections_with_defaults, PluralSectionsWithDefaults
-  end
-
-  describe '.sections' do
-    it 'should be settable' do
-      expect(SitePrism::Page).to respond_to(:sections)
-
-      expect(SitePrism::Section).to respond_to(:sections)
+    Class.new(SitePrism::Page) do
+      sections :plural_sections, plural_sections, '.tim'
+      sections :plural_sections_with_defaults, plural_sections_with_defaults
     end
   end
 
-  it 'should return an enumerable result' do
-    expect(subject.plural_sections).to be_an Array
+  describe '.sections' do
+    it 'can be set on `SitePrism::Page`' do
+      expect(SitePrism::Page).to respond_to(:sections)
+    end
+
+    it 'can be set on `SitePrism::Section`' do
+      expect(described_class).to respond_to(:sections)
+    end
   end
 
-  context "when using sections with default search arguments \
-and without search arguments" do
+  it 'returns an enumerable Array' do
+    expect(page_instance.plural_sections).to be_an Array
+  end
+
+  context 'when using sections with default search arguments set but no defined search arguments' do
     let(:search_arguments) { [:css, '.section'] }
 
     before do
-      allow(subject)
+      allow(page_instance)
         .to receive(:_all)
         .with(*search_arguments, wait: 0)
         .and_return(%i[element1 element2])
     end
 
-    it 'should use default arguments' do
-      expect(SitePrism::Section)
-        .to receive(:new).with(subject, :element1).ordered
-      expect(SitePrism::Section)
-        .to receive(:new).with(subject, :element2).ordered
+    it 'uses the `default_search_arguments` that have been set' do
+      expect(described_class).to receive(:new).twice
 
-      subject.plural_sections_with_defaults
+      page_instance.plural_sections_with_defaults
     end
   end
 end
